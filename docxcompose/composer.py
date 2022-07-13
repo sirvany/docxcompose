@@ -352,13 +352,13 @@ class Composer(object):
         if not num_ids:
             return
 
-        next_num_id, next_anum_id = self._next_numbering_ids()
-
         src_numbering_part = doc.part.numbering_part
 
         for num_id in num_ids:
             if num_id in self.num_id_mapping:
                 continue
+
+            next_num_id, next_anum_id = self._next_numbering_ids()
 
             # Find the referenced <w:num> element
             res = src_numbering_part.element.xpath(
