@@ -47,14 +47,17 @@ class Composer(object):
         self.anum_id_mapping = {}
         self._numbering_restarted = set()
 
-    def append(self, doc, remove_property_fields=True):
+    def append(self, doc, remove_property_fields=True, exclude_from_restart_numbering=None):
         """Append the given document."""
         index = self.append_index()
-        self.insert(index, doc, remove_property_fields=remove_property_fields)
+        self.insert(index, doc, remove_property_fields=remove_property_fields,
+                    exclude_from_restart_numbering=exclude_from_restart_numbering)
 
-    def insert(self, index, doc, remove_property_fields=True):
+    def insert(self, index, doc, remove_property_fields=True, exclude_from_restart_numbering=None):
         """Insert the given document at the given index."""
         self.reset_reference_mapping()
+        if exclude_from_restart_numbering is None:
+            exclude_from_restart_numbering = set()
 
         # Remove custom property fields but keep the values
         if remove_property_fields:
@@ -79,7 +82,8 @@ class Composer(object):
             self.add_referenced_parts(doc.part, self.doc.part, element)
             self.add_styles(doc, element)
             self.add_numberings(doc, element)
-            self.restart_first_numbering(doc, element)
+            if not [e for e in exclude_from_restart_numbering if isinstance(element, e)]:
+                self.restart_first_numbering(doc, element)
             self.add_images(doc, element)
             self.add_diagrams(doc, element)
             self.add_shapes(doc, element)
@@ -130,7 +134,7 @@ class Composer(object):
         """Add relationship and it's target part"""
         if relationship.is_external:
             new_rid = dst_part.rels.get_or_add_ext_rel(
-                    relationship.reltype, relationship.target_ref)
+                relationship.reltype, relationship.target_ref)
             return dst_part.rels[new_rid]
 
         part = relationship.target_part
@@ -145,7 +149,7 @@ class Composer(object):
         used_part_numbers = [
             int(idx) for idx in used_part_numbers if idx is not None]
 
-        for n in range(1, len(used_part_numbers)+2):
+        for n in range(1, len(used_part_numbers) + 2):
             if n not in used_part_numbers:
                 next_part_number = n
                 break
@@ -268,7 +272,7 @@ class Composer(object):
         if style_id not in self._style_id2name:
             return style_id
         return self._style_name2id.get(
-                self._style_id2name[style_id], style_id)
+            self._style_id2name[style_id], style_id)
 
     def _create_style_id_mapping(self, doc):
         # Style ids are language-specific, but names not (always), WTF?
@@ -388,7 +392,7 @@ class Composer(object):
                 if nsid is not None:
                     nsid.set(
                         '{%s}val' % NS['w'],
-                        "{0:08X}".format(int(10**8 * random.random()))
+                        "{0:08X}".format(int(10 ** 8 * random.random()))
                     )
 
                 self._insert_abstract_num(anum_element)
