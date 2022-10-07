@@ -47,13 +47,13 @@ class Composer(object):
         self.anum_id_mapping = {}
         self._numbering_restarted = set()
 
-    def append(self, doc, remove_property_fields=True, exclude_from_restart_numbering=None):
+    def append(self, doc, remove_property_fields=True, exclude_from_restart_numbering=None, ignore_styles=False):
         """Append the given document."""
         index = self.append_index()
         self.insert(index, doc, remove_property_fields=remove_property_fields,
-                    exclude_from_restart_numbering=exclude_from_restart_numbering)
+                    exclude_from_restart_numbering=exclude_from_restart_numbering, ignore_styles=ignore_styles)
 
-    def insert(self, index, doc, remove_property_fields=True, exclude_from_restart_numbering=None):
+    def insert(self, index, doc, remove_property_fields=True, exclude_from_restart_numbering=None, ignore_styles=False):
         """Insert the given document at the given index."""
         self.reset_reference_mapping()
         if exclude_from_restart_numbering is None:
@@ -80,7 +80,8 @@ class Composer(object):
             element = deepcopy(element)
             self.doc.element.body.insert(index, element)
             self.add_referenced_parts(doc.part, self.doc.part, element)
-            self.add_styles(doc, element)
+            if not ignore_styles:
+                self.add_styles(doc, element)
             self.add_numberings(doc, element)
             if not [e for e in exclude_from_restart_numbering if isinstance(element, e)]:
                 self.restart_first_numbering(doc, element)
